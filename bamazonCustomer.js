@@ -40,10 +40,10 @@ function start() {
       
     .then(function(answer) {
       // based on their answer, either call the bid or the post functions
-      if (answer.productID < 10) {
+      if (answer.productID > 10) {
         postProduct();
       }
-      else if(answer.productID > 10) {
+      else if(answer.productID < 10) {
         console.log("Insufficient quantity!");
       } else{
         connection.end();
