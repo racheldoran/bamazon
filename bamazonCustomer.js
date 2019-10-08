@@ -28,12 +28,6 @@ var query = function () {
     console.table(results);
   })
 };
-
-var start = function () {
-
-  connection.query("SELECT * FROM products", function (err, results) {
-    if (err) throw err;
-
     inquirer.prompt([
       {
         name: "itemId",
@@ -79,8 +73,6 @@ var start = function () {
         start();
       }
     });
-  });
-};
 
 query();
 start();
@@ -93,7 +85,7 @@ function display() {
     if (err) throw err;
 
     console.log('This is what we have: ');
-
+display()
 
     var products = '';
     for (var i = 0; i < data.length; i++) {
@@ -105,6 +97,6 @@ function display() {
 
       console.log(products);
     }
-    display();
+   
   })
 }
