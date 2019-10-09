@@ -19,7 +19,15 @@ var connection = mysql.createConnection({
 // connect to the mysql server and sql database
 
 connection.connect(function (err) {
-  if (err) throw err;
+  console.log('test')
+  // if (err) throw err;
+  if (err) {
+    console.log(err)
+  }
+
+  query();
+  start();
+  console.log('this has fired')
 });
 
 var query = function () {
@@ -72,10 +80,7 @@ var query = function () {
         query();
         start();
       }
-    });
-
-query();
-start();
+    });    
 
 function display() {
 
@@ -85,7 +90,7 @@ function display() {
     if (err) throw err;
 
     console.log('This is what we have: ');
-display()
+
 
     var products = '';
     for (var i = 0; i < data.length; i++) {
@@ -97,6 +102,7 @@ display()
 
       console.log(products);
     }
-   
+
   })
 }
+// display()
