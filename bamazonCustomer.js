@@ -17,92 +17,94 @@ var connection = mysql.createConnection({
 });
 
 // connect to the mysql server and sql database
-
 connection.connect(function (err) {
-  console.log('test')
-  // if (err) throw err;
-  if (err) {
-    console.log(err)
-  }
-
-  query();
-  start();
-  console.log('this has fired')
+  if (err) throw err;
+  // pulls the items for the user to select from
+  queryItems();
 });
+console.log("READY")
 
-var query = function () {
-  connection.query("SELECT * FROM products", function (err, results) {
+// query the database for all items up for sale
+function queryItems() {
+  connection.query("SELECT * FROM products", function (err, res) {
     if (err) throw err;
-    console.table(results);
-  })
-};
-    inquirer.prompt([
-      {
-        name: "itemId",
-        type: "list",
-        choices: function () {
-          var choiceArray = [];
-          for (var i = 0; i < results.length; i++) {
-            choiceArray.push(results[i].product_name);
-          }
-          return choiceArray;
-        },
-        message: "What would you like to purchase?"
-      },
-      {
-        name: "quantity",
-        type: "input",
-        message: "How many would you like?"
-      }
-    ]).then(function (answer) {
-      var quantity;
-      for (var i = 0; i < results.length; i++) {
-        if (results[i].product_name === answer.product) {
-          quantity = results[i];
-        }
-      }
-
-      if (quantity.stock_quantity > parseInt(answer.amount)) {
-        connection.query("UPDATE products SET ? WHERE ?", [
-          {
-            stock_quantity: quantity.stock_quantity - parseInt(answer.amount)
-          },
-          {
-            id: quantity.id
-          }], function (error) {
-            if (error) throw err;
-            console.log("Product purchased successfully!");
-            query();
-            start();
-          })
-      } else {
-        console.log("Insufficient stock.");
-        query();
-        start();
-      }
-    });    
-
-function display() {
-
-  displayItems = 'SELECT * FROM products';
-
-  connection.items(displayIems, function (err, data) {
-    if (err) throw err;
-
-    console.log('This is what we have: ');
-
-
-    var products = '';
-    for (var i = 0; i < data.length; i++) {
-      products = '';
-      products += 'Item ID: ' + data[i].item_id + "";
-      products += 'Product Name: ' + data[i].product_name + "" ;
-      products += 'Department: ' + data[i].department_name + "";
-      products += 'Price: ' + data[i].price + "";
-
-      console.log(products);
+    for (var i = 0; i < res.length; i++) {
+      console.log(res[i].item_id + " | " + res[i].product_name + " | " + "$" + res[i].price + " | " + res[i].stock_quantity);
     }
 
+    chooseItem();
+    // function to allow the user to choose an item and the amount of how many they want to purchase
+    function chooseItem() {
+      inquirer.prompt([
+        {
+          name: "choice",
+          type: "input",
+          message: "What item id would you like to purchase?",
+          choices: function (value) {
+            var choiceArray = [];
+            return choiceArray;
+          }
+        },
+        {
+          name: "quantity",
+          type: "input",
+          message: "How many would you like to purchase?",
+          validate: function (value) {
+            if (isNaN(value) === false) {
+              return true;
+            }
+            return false;
+          }
+        }]).then(function (answer) {
+
+
+
+          var chosenItem = answer.choice - 1;
+          var amountChosen = answer.quantity;
+          // Checks if the amount of items available for purchase
+          if (amountChosen >
+            res[chosenItem].stock_quantity) {
+            console.log("We do not have enough " + res[chosenItem].product_name + "'s in stock.  Please choose another amount.")
+          }
+          // If enought items are available thanks the customer and gives them their total
+          else {
+            console.log("Thank you for your purchase.  You're total is $" + amountChosen * res[chosenItem].price);
+            updateQuantity(res[chosenItem], amountChosen);
+          }
+          repeat();
+        });
+
+    }
   })
 }
-// display()
+// function to update the item's quantity in the db
+function updateQuantity(item, amountChosen) {
+  var newQuantity = item.stock_quantity - amountChosen;
+  var query = connection.query(
+    "UPDATE products SET ? WHERE ?",
+    [
+      { stock_quantity: newQuantity },
+      { item_id: item.item_id }
+    ],
+    function (err, res) {
+      if (err) throw err;
+    })
+}
+function repeat() {
+  inquirer.prompt({
+    // Ask user if he wants to purchase another item
+    name: "purchased again",
+    type: "list",
+    choices: ["Yes", "No"],
+    message: "Would you like to purchase another item?"
+  }).then(function (answer) {
+    if (answer.repurchase == "Sure!") {
+      queryAllItems();
+    }
+    else {
+      console.log("You're all set! Thanks1")
+      connection.end();
+    }
+  });
+}
+
