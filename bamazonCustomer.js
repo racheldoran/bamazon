@@ -102,7 +102,7 @@ function repeat() {
       queryAllItems();
     }
     else {
-      console.log("You're all set! Thanks1")
+      console.log("You're all set! Thanks")
       connection.end();
     }
   });
